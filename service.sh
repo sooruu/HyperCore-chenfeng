@@ -219,7 +219,7 @@ resetprop debug.hwui.renderer skiagl
 resetprop debug.renderengine.backend skiaglthreaded
 resetprop debug.hwui.render_thread true
 resetprop debug.egl.force_msaa true
-resetprop debug.sf.disable_backpressure 1
+# debug.sf.disable_backpressure removed in v3.0 — caused SystemUI ANR
 
 # ============================================================
 # 14. SURFACEFLINGER + HWC + AUDIOSERVER PRIORITY BOOST
@@ -227,31 +227,32 @@ resetprop debug.sf.disable_backpressure 1
 resetprop debug.sf.latch_unsignaled 1
 resetprop debug.sf.auto_latch_unsignaled 1
 
-# SurfaceFlinger — SCHED_FIFO 99 (real-time, highest)
+# SurfaceFlinger — SCHED_FIFO 90 (real-time but leaves headroom for SystemUI)
+# v2.1 used 99 which could starve SystemUI → ANR
 SF_PID=$(pidof surfaceflinger 2>/dev/null)
 if [ -n "$SF_PID" ]; then
-    chrt -f -p 99 "$SF_PID" 2>/dev/null
+    chrt -f -p 90 "$SF_PID" 2>/dev/null
 fi
 
-# HWC (Hardware Composer) — SCHED_FIFO 98
+# HWC (Hardware Composer) — SCHED_FIFO 89
 HWC_PID=$(pidof android.hardware.composer.default 2>/dev/null)
 if [ -z "$HWC_PID" ]; then
     HWC_PID=$(pidof vendor.qti.hardware.display.composer-service 2>/dev/null)
 fi
 if [ -n "$HWC_PID" ]; then
-    chrt -f -p 98 "$HWC_PID" 2>/dev/null
+    chrt -f -p 89 "$HWC_PID" 2>/dev/null
 fi
 
-# AudioServer — SCHED_FIFO 97 (NEW in v3.0 — prevents audio glitches)
+# AudioServer — SCHED_FIFO 88 (prevents audio glitches)
 AUDIO_PID=$(pidof audioserver 2>/dev/null)
 if [ -n "$AUDIO_PID" ]; then
-    chrt -f -p 97 "$AUDIO_PID" 2>/dev/null
+    chrt -f -p 88 "$AUDIO_PID" 2>/dev/null
 fi
 
-# CameraServer — SCHED_FIFO 96 (NEW in v3.0 — smoother viewfinder)
+# CameraServer — SCHED_FIFO 87 (smoother viewfinder)
 CAM_PID=$(pidof cameraserver 2>/dev/null)
 if [ -n "$CAM_PID" ]; then
-    chrt -f -p 96 "$CAM_PID" 2>/dev/null
+    chrt -f -p 87 "$CAM_PID" 2>/dev/null
 fi
 
 # ============================================================
