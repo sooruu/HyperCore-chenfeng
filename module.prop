@@ -1,6 +1,6 @@
 id=hypercore_chenfeng
 name=HyperCore - Thermal & Performance
-version=v2.0
-versionCode=2
+version=v2.1
+versionCode=3
 author=HyperCore
-description=Disables thermal throttling, locks max FPS, kernel-level perf tuning (CPU governor, GPU, I/O, memory, scheduler, network) for Xiaomi 14 Civi (chenfeng)
+description=Thermal override + kernel-level perf tuning (CPU, GPU, I/O, VM, scheduler, network, SurfaceFlinger, ART, touch) for Xiaomi 14 Civi (chenfeng)

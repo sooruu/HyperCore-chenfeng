@@ -6,7 +6,9 @@ Disables thermal throttling, locks max CPU/GPU clocks during gaming, enables agg
 
 ## What it does
 
-This module overrides 8 system config files using bind mounts at boot:
+### Vendor Config Overrides (post-fs-data.sh)
+
+8 bind-mounted config files replacing stock vendor/product XMLs:
 
 | File | Effect |
 |------|--------|
@@ -19,9 +21,28 @@ This module overrides 8 system config files using bind mounts at boot:
 | `thermal_brightness_control.xml` | Prevents brightness reduction during thermal throttling |
 | `common_multi_factor_thermal_brightness_control.xml` | Disables multi-factor thermal brightness control |
 
+### Kernel-level Runtime Tuning (service.sh)
+
+14 sections of sysfs writes and property changes — no kernel binary modification:
+
+1. **CPU Governor** — Zero rate-limit ramp-up, 4ms ramp-down hold, disable predictive load
+2. **I/O Scheduler** — 64KB read-ahead, disable iostats and add_random
+3. **Memory/VM** — Swappiness 60, aggressive dirty writeback, disable compaction proactiveness
+4. **Kernel Scheduler** — Lower migration cost, 4ms latency, faster wakeup granularity
+5. **GPU (Adreno)** — Force clk/bus/rail on, disable nap, adrenoboost level 3
+6. **Network** — BBR congestion control, TCP fast open, disable slow start after idle
+7. **Debug Overhead** — Disable printk, disable panic on oops
+8. **zRAM** — lz4 compression (faster decompression)
+9. **Stune/Cpuset** — Boost top-app +10, background restricted to efficiency cores
+10. **UI Rendering** — Force GPU rendering, skiagl threaded backend, disable backpressure
+11. **SurfaceFlinger** — SCHED_FIFO priority 99, HWC boost priority 98, latch_unsignaled
+12. **Dalvik/ART** — 512m heap, 256m growth limit, 8 dex2oat threads, speed-profile
+13. **Touch Responsiveness** — Scrolling cache, pressure scale tuning, touch boost
+14. **Telemetry Kill** — Kill miui analytics/daemon, disable kernel tracing
+
 ## Installation
 
-1. Download `HyperCore_chenfeng_v1.0.zip` from [Releases](../../releases)
+1. Download the latest zip from [Releases](../../releases)
 2. Open KernelSU Manager (or Magisk Manager)
 3. Go to Modules → Install from storage
 4. Select the zip file
@@ -45,6 +66,7 @@ This module disables thermal protection. Your device will run hotter under susta
 hypercore_module/
 ├── module.prop
 ├── post-fs-data.sh
+├── service.sh
 └── system/
     ├── product/etc/displayconfig/
     │   ├── thermal_brightness_control.xml

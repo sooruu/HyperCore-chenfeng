@@ -158,3 +158,91 @@ fi
 if [ -f /dev/cpuset/background/cpus ]; then
     echo 0-3 > /dev/cpuset/background/cpus 2>/dev/null
 fi
+
+# ============================================================
+# 10. UI SMOOTHNESS — ANIMATION & RENDERING PROPS
+# ============================================================
+# Keep animations at stock 1.0x (don't override user preference)
+# resetprop persist.sys.animator_duration_scale 1.0
+# resetprop persist.sys.transition_animation_scale 1.0
+# resetprop persist.sys.window_animation_scale 1.0
+
+# Force GPU rendering for UI (offload from CPU)
+resetprop persist.sys.ui.hw 1
+resetprop debug.hwui.renderer skiagl
+resetprop debug.renderengine.backend skiaglthreaded
+
+# Increase HWUI render thread priority
+resetprop debug.hwui.render_thread true
+
+# Force 4x MSAA in OpenGL apps (smoother edges)
+resetprop debug.egl.force_msaa true
+
+# Disable vsync offsets for lower input latency
+resetprop debug.sf.disable_backpressure 1
+
+# ============================================================
+# 11. SURFACEFLINGER TUNING (frame rendering)
+# ============================================================
+# Set SurfaceFlinger to high priority scheduling
+resetprop debug.sf.latch_unsignaled 1
+resetprop debug.sf.auto_latch_unsignaled 1
+
+# Use SCHED_FIFO for SurfaceFlinger (real-time priority)
+# This is the single biggest UI smoothness improvement
+SF_PID=$(pidof surfaceflinger 2>/dev/null)
+if [ -n "$SF_PID" ]; then
+    chrt -f -p 99 "$SF_PID" 2>/dev/null
+fi
+
+# Also boost HWC (Hardware Composer) daemon
+HWC_PID=$(pidof android.hardware.composer.default 2>/dev/null)
+if [ -z "$HWC_PID" ]; then
+    HWC_PID=$(pidof vendor.qti.hardware.display.composer-service 2>/dev/null)
+fi
+if [ -n "$HWC_PID" ]; then
+    chrt -f -p 98 "$HWC_PID" 2>/dev/null
+fi
+
+# ============================================================
+# 12. DALVIK/ART VM TUNING
+# ============================================================
+# Larger heap = fewer GC pauses = smoother UI
+resetprop dalvik.vm.heapsize 512m
+resetprop dalvik.vm.heapgrowthlimit 256m
+resetprop dalvik.vm.heapminfree 8m
+resetprop dalvik.vm.heapmaxfree 32m
+resetprop dalvik.vm.heaptargetutilization 0.75
+
+# Use speed-profile compilation (best balance of speed + storage)
+resetprop dalvik.vm.dex2oat-threads 8
+resetprop pm.dexopt.install speed-profile
+resetprop pm.dexopt.bg-dexopt speed-profile
+
+# ============================================================
+# 13. TOUCH RESPONSIVENESS
+# ============================================================
+# Reduce touch input latency
+resetprop persist.sys.scrollingcache 3
+resetprop touch.pressure.scale 0.001
+resetprop persist.sys.touch.pressure true
+
+# Disable touch boost delay (respond to touch immediately)
+for touch_boost in /sys/module/msm_performance/parameters/touchboost; do
+    echo 1 > "$touch_boost" 2>/dev/null
+done
+
+# ============================================================
+# 14. DISABLE XIAOMI TELEMETRY/LOGGING AT KERNEL LEVEL
+# ============================================================
+# Kill miui analytics daemon if running
+for proc in com.miui.analytics com.miui.daemon; do
+    PID=$(pidof "$proc" 2>/dev/null)
+    if [ -n "$PID" ]; then
+        kill -9 "$PID" 2>/dev/null
+    fi
+done
+
+# Disable kernel tracing (significant overhead reduction)
+echo 0 > /sys/kernel/tracing/tracing_on 2>/dev/null
+echo 0 > /sys/kernel/debug/tracing/tracing_on 2>/dev/null
