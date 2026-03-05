@@ -1,91 +1,60 @@
-# HyperCore - Thermal & Performance Module
+# HyperCore v3.0 — Intelligent Performance + Battery Balance
 
-KernelSU / Magisk module for **Xiaomi 14 Civi (chenfeng)** running HyperOS 3.0 (Android 16).
+iOS-style optimization for Xiaomi 14 Civi (chenfeng, SM8635).
+Smooth UI + constant gaming FPS + battery efficient.
 
-Disables thermal throttling, locks max CPU/GPU clocks during gaming, enables aggressive game power optimization, and maintains full brightness + 120fps regardless of thermal state.
+## Philosophy
 
-## What it does
+v2.1 was "max everything always on" — great for gaming, terrible for battery.
+v3.0 is iOS-style: the system is smart enough to boost only when needed.
 
-### Vendor Config Overrides (post-fs-data.sh)
+## What's New in v3.0
 
-8 bind-mounted config files replacing stock vendor/product XMLs:
+### Enabled Disabled Qualcomm Features
+Stock ROM disables these ML-based features on SM8635 (cliffs). We enable them:
+- **SilkyScrolls** — ML-based scroll smoothness (IPC/freq boost during scrolls)
+- **sPLH** — Scroll Performance Load Hint (complementary to SilkyScrolls)
+- **AdaptLaunch** — ML-based adaptive app launch boost (learns per-app patterns)
+- **Lightning Game Launch** — adaptive game launch boost
+- **TopApp Render Thread Boost** — priority boost for foreground app render thread
+- **QGPE AdaptiveEngine** — enabled on cliffs (stock: disabled)
+- **PreKill** — proactive memory management
+- **PrefApps** — keep preferred apps in memory longer
 
-| File | Effect |
-|------|--------|
-| `thermalbreakboostconfig.xml` | Disables thermal break boost — no clock drops during sustained load |
-| `perfboostsconfig.xml` | Aggressive perf boost configs for foreground apps |
-| `thermallevel_to_fps.xml` | Locks 120fps at all thermal levels (stock drops to 60fps at level 3+) |
-| `QGPE.xml` | Game Performance Engine — 2x faster PID sampling, jank rescue enabled, max GPU frequency lock |
-| `GamePowerOptFeature.xml` | Enables all game power optimization features |
-| `PowerFeatureConfig.xml` | Disables thermal monitoring for CPU/GPU, removes power caps |
-| `thermal_brightness_control.xml` | Prevents brightness reduction during thermal throttling |
-| `common_multi_factor_thermal_brightness_control.xml` | Disables multi-factor thermal brightness control |
+### New Vendor Config Overrides (6 new files, 14 total)
+- `perfconfigstore.xml` — enables all disabled Qualcomm features above
+- `perf_hint_threshold.xml` — 2x lower thresholds for faster frame stability boost
+- `SilkyScrollsFeature.xml` — tuned IPC/freq thresholds for 120fps scroll
+- `sPLHFeature.xml` — scroll perf load hint with cliffs target
+- `QAPE.xml` — thread pipeline enabled for 15 popular games
+- `smomo_setting.xml` — SmoMo game layer configs (60/90/120fps modes)
 
-### Kernel-level Runtime Tuning (service.sh)
+### New Runtime Tuning
+- **UFS storage tuning** — disabled auto-hibernate for lower storage latency
+- **DRAM frequency floor** — memory bus never fully sleeps (instant wake)
+- **L3 cache frequency floor** — cache stays warm
+- **IRQ affinity** — GPU/display/touch IRQs pinned to performance cores
+- **AudioServer SCHED_FIFO** — prevents audio glitches during heavy load
+- **CameraServer SCHED_FIFO** — smoother camera viewfinder
+- **CPU idle state control** — shallow sleep on big/prime cores
+- **Background app limit** — 60 → 96 (keep more apps alive)
 
-14 sections of sysfs writes and property changes — no kernel binary modification:
+### Improved from v2.1
+- **GamePowerOptFeature** — Genshin Impact removed from IgnoredApps on cliffs, jank rescue enabled on cliffs
+- **PowerFeatureConfig** — VideoPowerOpt and VendorScenarioPowerOpt enabled
+- **GPU tuning** — balanced (medium adrenoboost, rail not forced on) saves battery
+- **VM tuning** — higher swappiness (use zRAM more, save battery)
+- **CPU governor** — moderate ramp-down (8ms vs 4ms) saves battery during idle
+- **Stune boost** — reduced from 10 to 5 (less aggressive, more efficient)
 
-1. **CPU Governor** — Zero rate-limit ramp-up, 4ms ramp-down hold, disable predictive load
-2. **I/O Scheduler** — 64KB read-ahead, disable iostats and add_random
-3. **Memory/VM** — Swappiness 60, aggressive dirty writeback, disable compaction proactiveness
-4. **Kernel Scheduler** — Lower migration cost, 4ms latency, faster wakeup granularity
-5. **GPU (Adreno)** — Force clk/bus/rail on, disable nap, adrenoboost level 3
-6. **Network** — BBR congestion control, TCP fast open, disable slow start after idle
-7. **Debug Overhead** — Disable printk, disable panic on oops
-8. **zRAM** — lz4 compression (faster decompression)
-9. **Stune/Cpuset** — Boost top-app +10, background restricted to efficiency cores
-10. **UI Rendering** — Force GPU rendering, skiagl threaded backend, disable backpressure
-11. **SurfaceFlinger** — SCHED_FIFO priority 99, HWC boost priority 98, latch_unsignaled
-12. **Dalvik/ART** — 512m heap, 256m growth limit, 8 dex2oat threads, speed-profile
-13. **Touch Responsiveness** — Scrolling cache, pressure scale tuning, touch boost
-14. **Telemetry Kill** — Kill miui analytics/daemon, disable kernel tracing
-
-## Installation
-
-1. Download the latest zip from [Releases](../../releases)
-2. Open KernelSU Manager (or Magisk Manager)
-3. Go to Modules → Install from storage
-4. Select the zip file
-5. Reboot
-
-## Compatibility
-
-- Device: Xiaomi 14 Civi (chenfeng) — model `24053PY09I`
-- SoC: Snapdragon 7+ Gen 3 (SM8635 / pineapple)
-- ROM: HyperOS 3.0 (Xiaomi EU, ZKROM, or stock CN)
-- Root: KernelSU (Wild/Next/Official) or Magisk
-- Android: 16 (API 36)
-
-## Warning
-
-This module disables thermal protection. Your device will run hotter under sustained gaming loads. This is by design — it trades thermal safety for maximum performance. Monitor temps if you're concerned.
-
-## Module Structure
-
+## CPU Topology
 ```
-hypercore_module/
-├── module.prop
-├── post-fs-data.sh
-├── service.sh
-└── system/
-    ├── product/etc/displayconfig/
-    │   ├── thermal_brightness_control.xml
-    │   └── common_multi_factor_thermal_brightness_control.xml
-    └── vendor/etc/
-        ├── display/thermallevel_to_fps.xml
-        ├── lm/QGPE.xml
-        ├── perf/perfboostsconfig.xml
-        ├── perf/thermalbreakboostconfig.xml
-        └── pwr/
-            ├── GamePowerOptFeature.xml
-            └── PowerFeatureConfig.xml
+cpu0-2:  Cortex-A520 (little)  — 2016 MHz
+cpu3-6:  Cortex-A720 (mid)     — 2803 MHz
+cpu7:    Cortex-X4   (prime)   — 3014 MHz
 ```
 
-## Credits
-
-- Config analysis and module packaging by the chenfeng-dev community
-- Based on stock HyperOS 3.0.4.0 (WNJINXM) vendor configs
-
-## License
-
-MIT
+## File Count
+- 14 vendor/product config bind-mounts (post-fs-data.sh)
+- 19 sections kernel-level sysfs tuning (service.sh)
+- ~25 system properties via resetprop

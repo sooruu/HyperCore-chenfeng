@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<!--
+ HyperCore v3.0 — SmoMo (Smooth Motion) game layer config
+ Stock only has sample/template entries. We add real game configs.
+ SmoMo synchronizes game render rate with display refresh for tear-free frames.
+-->
+<SmomoSetting>
+  <SmomoModeList>
+    <SmomoMode id="1" name="game_120">
+      <FpsMap minFps="100" maxFps="1000" appFps="120" refreshRate="120" qsync="true" bypass="true" vsyncMove="3000000" early="1000000" late="6000000" slack="500000"/>
+      <FpsMap minFps="52" maxFps="68" appFps="60" refreshRate="120" qsync="true" vsyncMove="3000000" early="1000000" late="6000000" slack="500000" maxLatency="0"/>
+      <FpsMap minFps="82" maxFps="98" appFps="90" refreshRate="120" qsync="true" vsyncMove="3000000" early="1000000" late="6000000" slack="500000" maxLatency="0"/>
+    </SmomoMode>
+    <SmomoMode id="2" name="game_90">
+      <FpsMap minFps="82" maxFps="98" appFps="90" refreshRate="120" qsync="true" bypass="true" vsyncMove="3000000" early="1000000" late="6000000" slack="500000"/>
+      <FpsMap minFps="52" maxFps="68" appFps="60" refreshRate="120" qsync="true" vsyncMove="3000000" early="1000000" late="6000000" slack="500000" maxLatency="0"/>
+    </SmomoMode>
+    <SmomoMode id="3" name="game_60">
+      <FpsMap minFps="52" maxFps="68" appFps="60" refreshRate="120" qsync="true" bypass="true" vsyncMove="3000000" early="1000000" late="6000000" slack="500000"/>
+      <FpsMap minFps="25" maxFps="38" appFps="30" refreshRate="120" qsync="true" vsyncMove="3000000" early="1000000" late="6000000" slack="500000" maxLatency="0"/>
+    </SmomoMode>
+  </SmomoModeList>
+
+  <SmoMoWhiteList>
+    <LayerWhiteList>
+      <LayerApp name="camera">
+        <AppLayer name="SurfaceView[com.sample.camera/com.android.camera.CameraActivity](BLAST)#0" type="camera" strategy="default" enable="true"/>
+      </LayerApp>
+      <LayerApp name="game">
+        <AppLayer name="SurfaceView[com.sample.game/com.sample.game.GameActivity](BLAST)#0" type="game" strategy="mode" mode="1" variation="0.6" samples="8" enable="true"/>
+      </LayerApp>
+    </LayerWhiteList>
+  </SmoMoWhiteList>
+</SmomoSetting>

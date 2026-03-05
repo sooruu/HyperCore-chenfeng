@@ -1,17 +1,10 @@
 <!--
-/******************************************************************************
-  @file    PowerFeatureConfig.xml
-  @brief   Power Optimization feature config xml
-
-  DESCRIPTION
-      This is to enable power features for optimization
-
-  ===========================================================================
-  Copyright (c) 2023 Qualcomm Technologies, Inc.
-  All Rights Reserved.
-  Confidential and Proprietary - Qualcomm Technologies, Inc.
-  ===========================================================================
-******************************************************************************/
+ HyperCore v3.0 — PowerFeatureConfig.xml
+ Changes from stock:
+   - VideoPowerOptFeature: 0 → 1 (optimize video playback power)
+   - VendorScenarioPowerOptFeature: 0 → 1 (vendor scenario optimization)
+   - GamePowerOptFeature: 1 (kept enabled)
+   - OffScreenPowerOptFeature: 1 (kept enabled)
 -->
 <PowerFeature>
     <Feature>
@@ -20,7 +13,7 @@
     </Feature>
     <Feature>
         <Name>VideoPowerOptFeature</Name>
-        <Enable>0</Enable>
+        <Enable>1</Enable>
     </Feature>
     <Feature>
         <Name>StandbyFeature</Name>
@@ -28,7 +21,7 @@
     </Feature>
     <Feature>
         <Name>VendorScenarioPowerOptFeature</Name>
-        <Enable>0</Enable>
+        <Enable>1</Enable>
     </Feature>
     <Feature>
         <Name>AODPowerOptFeature</Name>

@@ -1,6 +1,6 @@
 id=hypercore_chenfeng
-name=HyperCore - Thermal & Performance
-version=v2.1
-versionCode=3
+name=HyperCore - Intelligent Performance
+version=v3.0
+versionCode=4
 author=HyperCore
-description=Thermal override + kernel-level perf tuning (CPU, GPU, I/O, VM, scheduler, network, SurfaceFlinger, ART, touch) for Xiaomi 14 Civi (chenfeng)
+description=iOS-style intelligent performance: smooth UI + battery saving + max gaming FPS. Enables disabled Qualcomm features (SilkyScrolls, sPLH, AdaptLaunch, TopAppRenderThreadBoost), UFS/DRAM/L3 tuning, IRQ affinity, process priority boost, lower perf hint thresholds. Xiaomi 14 Civi (chenfeng) SM8635.

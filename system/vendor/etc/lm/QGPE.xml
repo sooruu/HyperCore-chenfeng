@@ -60,7 +60,8 @@
         <QSPM_EXCLUSIIVE>0</QSPM_EXCLUSIIVE>
         <THERMAL_ATA_LEVEL_THRESHOLDS>-1, -1, -1</THERMAL_ATA_LEVEL_THRESHOLDS>
         <THERMAL_ATA_SKIN_THRESHOLD>51</THERMAL_ATA_SKIN_THRESHOLD>
-        <AdaptiveEngine>0</AdaptiveEngine>
+        <!-- HYPERCORE v3.0: Enable AdaptiveEngine on cliffs (stock: 0) -->
+        <AdaptiveEngine>1</AdaptiveEngine>
         <PredictiveEngine>1</PredictiveEngine>
         <ProactiveEngine>1</ProactiveEngine>
     </Configs>

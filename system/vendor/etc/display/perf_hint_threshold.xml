@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+ HyperCore v3.0 — Lower perf hint thresholds for more aggressive frame stability
+ Stock thresholds are too high — the system waits too long before boosting
+ Lower threshold = boost kicks in sooner = fewer dropped frames
+ 
+ Stock v1: 120fps=8, 144fps=6
+ HyperCore v3.0: 120fps=4, 144fps=3 (trigger boost 2x sooner)
+-->
+<LargeCompPerfHintThreshold>
+  <DeviceThresholdList>
+    <DefaultDevice version="1"/>
+      <Device version="1">
+        <FpsThresholdMap fps="120" PerfHintThreshold="4"/>
+        <FpsThresholdMap fps="144" PerfHintThreshold="3"/>
+        <FpsThresholdMap fps="180" PerfHintThreshold="4"/>
+        <FpsThresholdMap fps="244" PerfHintThreshold="2"/>
+      </Device>
+      <Device version="2">
+        <FpsThresholdMap fps="120" PerfHintThreshold="1"/>
+        <FpsThresholdMap fps="144" PerfHintThreshold="1"/>
+        <FpsThresholdMap fps="180" PerfHintThreshold="1"/>
+        <FpsThresholdMap fps="244" PerfHintThreshold="1"/>
+      </Device>
+      <Device version="3">
+        <FpsThresholdMap fps="120" PerfHintThreshold="2"/>
+        <FpsThresholdMap fps="144" PerfHintThreshold="2"/>
+        <FpsThresholdMap fps="180" PerfHintThreshold="2"/>
+        <FpsThresholdMap fps="244" PerfHintThreshold="2"/>
+      </Device>
+  </DeviceThresholdList>
+</LargeCompPerfHintThreshold>
