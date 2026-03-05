@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    HyperCore EXTREME Performance - NO THROTTLING
+    Xiaomi 14 Civi (chenfeng) SM8635
+    
+    ALL temperatures run at MAX frequencies.
+    Hardware thermal shutdown (~115°C) is the only protection.
+    
+    CPU Layout:
+      cpu0-2: Little (Cortex-A520) max 2016000
+      cpu3-6: Mid (Cortex-A720) max 2803200  
+      cpu7:   Prime (Cortex-X4) max 3014400
+-->
+<BoostConfigs>
+    <ScrollBoost>
+        <Config Scence="0">
+                <Child Trig="35000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+                <Child Trig="37000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+                <Child Trig="39000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+                <Child Trig="41000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+                <Child Trig="43000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+                <Child Trig="45000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+        </Config>
+        <Config Scence="1">
+                <Child Trig="35000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+                <Child Trig="37000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+                <Child Trig="39000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+                <Child Trig="41000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+                <Child Trig="43000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+                <Child Trig="45000"
+                Target0="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target1="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"
+                Target2="boost:1 cpu0:2016000 cpu2:2803200 cpu5:2803200 cpu7:3014400"/>
+        </Config>
+    </ScrollBoost>
+</BoostConfigs>

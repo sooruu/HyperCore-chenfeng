@@ -1,0 +1,6 @@
+id=hypercore_chenfeng
+name=HyperCore - Thermal & Performance
+version=v1.0
+versionCode=1
+author=HyperCore
+description=Disables thermal throttling, locks max FPS, enables GamePowerOpt for Xiaomi 14 Civi (chenfeng)
