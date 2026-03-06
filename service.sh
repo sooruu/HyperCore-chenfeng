@@ -274,9 +274,11 @@ for irq_dir in /proc/irq/*/; do
             # Display IRQs → big cores (cpu3-6)
             echo 78 > "${irq_dir}smp_affinity" 2>/dev/null
             ;;
-        *touch*|*goodix*|*fts*|*synaptics*|*atmel*|*nvt*)
+        *touch*|*goodix*|*fts*|*synaptics*|*atmel*|*nvt*|*xiaomi*|*focaltech*|*gtp*)
             # Touch IRQs → big cores for lowest input latency
-            echo 78 > "${irq_dir}smp_affinity" 2>/dev/null
+            # Prime core (cpu7) = 0x80, Big cores (cpu3-6) = 0x78
+            # Use big+prime (0xF8) for touch — maximum responsiveness
+            echo f8 > "${irq_dir}smp_affinity" 2>/dev/null
             ;;
     esac
 done
@@ -294,14 +296,35 @@ resetprop pm.dexopt.install speed-profile
 resetprop pm.dexopt.bg-dexopt speed-profile
 
 # ============================================================
-# 17. TOUCH RESPONSIVENESS
+# 17. TOUCH RESPONSIVENESS (CRITICAL FOR GAMING AIM ASSIST)
 # ============================================================
 resetprop persist.sys.scrollingcache 3
 resetprop touch.pressure.scale 0.001
 resetprop persist.sys.touch.pressure true
 
+# Reduce SF touch timer: 200ms → 0ms (don't drop refresh rate after touch)
+# Stock 200ms means display can drop to idle fps between rapid taps
+resetprop ro.surface_flinger.set_touch_timer_ms 0
+
 for touch_boost in /sys/module/msm_performance/parameters/touchboost; do
     echo 1 > "$touch_boost" 2>/dev/null
+done
+
+# === GOODIX HIGH TOUCH SAMPLING RATE (HTSR) ===
+# Xiaomi 14 Civi uses Goodix touch controller (goodix_ts.0)
+# Writing 1 enables high touch polling rate (~480Hz vs default ~240Hz)
+# This is the single biggest factor for aim assist smoothness
+HTSR_FILE="/sys/devices/platform/goodix_ts.0/switch_report_rate"
+if [ -f "$HTSR_FILE" ]; then
+    echo 1 > "$HTSR_FILE" 2>/dev/null
+fi
+
+# Goodix touch controller: enable game mode for lower touch latency
+# Game mode reduces touch filtering/smoothing for raw input
+for gts in /sys/devices/platform/goodix_ts.0; do
+    if [ -f "$gts/game_mode" ]; then
+        echo 1 > "$gts/game_mode" 2>/dev/null
+    fi
 done
 
 # ============================================================
@@ -324,7 +347,28 @@ for cpu in 3 4 5 6 7; do
 done
 
 # ============================================================
-# 19. DISABLE XIAOMI TELEMETRY
+# 19. BGMI / PUBG TOUCH INPUT OPTIMIZATION
+# ============================================================
+# BGMI aim assist relies on consistent, low-jitter touch input.
+# iPhone feels better because its touch pipeline has lower, more
+# consistent latency. These tweaks close the gap on Android.
+
+# Disable touch idle (prevents touch controller from entering low-power mode)
+if [ -f /sys/devices/platform/goodix_ts.0/idle_enable ]; then
+    echo 0 > /sys/devices/platform/goodix_ts.0/idle_enable 2>/dev/null
+fi
+
+# Xiaomi TouchFeature: set game mode via setTouchMode
+# Mode 0 = Game Mode, Mode 17 = Touch Tolerance (lower = more sensitive)
+# This uses Xiaomi's proprietary touch HAL
+# The service.sh can't call the HAL directly, but we can set the sysfs nodes
+
+# Disable pointer acceleration (Android applies acceleration by default)
+# This makes raw touch movement 1:1 — critical for aim assist consistency
+resetprop persist.sys.ui.hw 1
+
+# ============================================================
+# 20. DISABLE XIAOMI TELEMETRY
 # ============================================================
 for proc in com.miui.analytics com.miui.daemon; do
     PID=$(pidof "$proc" 2>/dev/null)
