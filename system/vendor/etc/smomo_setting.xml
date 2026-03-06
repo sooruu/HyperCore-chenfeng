@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <!--
- HyperCore v3.0 — SmoMo (Smooth Motion) game layer config
- Stock only has sample/template entries. We add real game configs.
- SmoMo synchronizes game render rate with display refresh for tear-free frames.
+ HyperCore v4.0 — SmoMo (Smooth Motion) game layer config
+ v4.0: Added BGMI-specific layer config for tear-free frame sync
+ SmoMo synchronizes game render rate with display refresh
 -->
 <SmomoSetting>
   <SmomoModeList>
@@ -26,6 +26,17 @@
       <LayerApp name="camera">
         <AppLayer name="SurfaceView[com.sample.camera/com.android.camera.CameraActivity](BLAST)#0" type="camera" strategy="default" enable="true"/>
       </LayerApp>
+      <!-- BGMI: 120fps mode — bypass at 120Hz (1:1 frame:refresh, zero overhead) -->
+      <LayerApp name="bgmi">
+        <AppLayer name="SurfaceView[com.pubg.imobile/com.epicgames.ue4.SplashActivity](BLAST)#0" type="game" strategy="mode" mode="1" variation="0.6" samples="8" enable="true"/>
+        <AppLayer name="SurfaceView[com.pubg.imobile/com.epicgames.ue4.GameActivity](BLAST)#0" type="game" strategy="mode" mode="1" variation="0.6" samples="8" enable="true"/>
+      </LayerApp>
+      <!-- PUBG Global -->
+      <LayerApp name="pubg_global">
+        <AppLayer name="SurfaceView[com.tencent.ig/com.epicgames.ue4.SplashActivity](BLAST)#0" type="game" strategy="mode" mode="1" variation="0.6" samples="8" enable="true"/>
+        <AppLayer name="SurfaceView[com.tencent.ig/com.epicgames.ue4.GameActivity](BLAST)#0" type="game" strategy="mode" mode="1" variation="0.6" samples="8" enable="true"/>
+      </LayerApp>
+      <!-- Generic game template -->
       <LayerApp name="game">
         <AppLayer name="SurfaceView[com.sample.game/com.sample.game.GameActivity](BLAST)#0" type="game" strategy="mode" mode="1" variation="0.6" samples="8" enable="true"/>
       </LayerApp>

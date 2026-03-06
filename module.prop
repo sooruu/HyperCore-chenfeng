@@ -3,4 +3,4 @@ name=HyperCore - Intelligent Performance
 version=v4.0
 versionCode=6
 author=HyperCore
-description=Dynamic game-aware performance engine. Auto-detects games and switches profiles (render thread pinning, uclamp boost, GPU rail lock, 4-thread rendering). iOS-style frame consistency, Qualcomm feature unlock (SilkyScrolls, sPLH, AdaptLaunch), Goodix 480Hz HTSR, IRQ affinity, UFS/DRAM/L3 tuning. Xiaomi 14 Civi (chenfeng) SM8635.
+description=v3.1 base + BGMI optimized. Qualcomm feature unlocks (SilkyScrolls, sPLH, AdaptLaunch, TopAppRenderThreadBoost), Goodix 240Hz touch + game mode, UE4 GPU hints, BGMI network/UDP tuning, WALT colocation, SmoMo BGMI layer sync, tighter SF phase offsets, faster AdaptLaunch ML learning. 16 vendor XML overrides. No daemon. Xiaomi 14 Civi (chenfeng) SM8635.

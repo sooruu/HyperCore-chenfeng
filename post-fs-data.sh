@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# HyperCore v4.0 — Vendor Config Overrides (bind-mount)
+# HyperCore v3.0 — Vendor Config Overrides (bind-mount)
 MODDIR=${0%/*}
 
 bind_mount() {
@@ -38,3 +38,10 @@ bind_mount "$MODDIR/system/vendor/etc/lm/QAPE.xml" /vendor/etc/lm/QAPE.xml
 
 # smomo_setting.xml — SmoMo game layer configs for popular titles
 bind_mount "$MODDIR/system/vendor/etc/smomo_setting.xml" /vendor/etc/smomo_setting.xml
+
+# === NEW v4.0 OVERRIDES ===
+# advanced_sf_offsets.xml — tighter SF phase offsets for lower input-to-display latency
+bind_mount "$MODDIR/system/vendor/etc/display/advanced_sf_offsets.xml" /vendor/etc/display/advanced_sf_offsets.xml
+
+# AdaptLaunchFeature.xml — faster ML learning (2 samples instead of 4)
+bind_mount "$MODDIR/system/vendor/etc/lm/AdaptLaunchFeature.xml" /vendor/etc/lm/AdaptLaunchFeature.xml

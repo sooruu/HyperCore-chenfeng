@@ -1,0 +1,49 @@
+<?xml version="1.0" ?>
+<!--
+ HyperCore v4.0 — advanced_sf_offsets.xml
+ Tighter SurfaceFlinger phase offsets for lower input-to-display latency.
+ 
+ Stock values are conservative (148% at 120Hz). Lower percentage = SF starts
+ compositing earlier in the vsync cycle = frame is ready sooner = less latency.
+ 
+ This affects ALL apps, not just games — scrolling, app switching, typing.
+ 
+ Changes from stock:
+   - 120Hz: SfDurationPercentage 148 → 130, AppDuration added (tighter deadline)
+   - 90Hz: SfDurationPercentage 136 → 125
+   - Added version 5 entry with tighter timings across all refresh rates
+-->
+<AdvancedSfOffsetSetting>
+    <DeviceSettingList>
+        <DefaultDevice version="1"/>
+        <Device version="1">
+            <FpsOffsetMap fps="90" SfDurationPercentage="125"/>
+            <FpsOffsetMap fps="120" SfDurationPercentage="130"/>
+            <FpsOffsetMap fps="144" SfDurationPercentage="135"/>
+        </Device>
+        <Device version="2">
+            <FpsOffsetMap fps="90" SfDurationPercentage="130"/>
+            <FpsOffsetMap fps="120" SfDurationPercentage="130"/>
+            <FpsOffsetMap fps="144" SfDurationPercentage="135"/>
+        </Device>
+        <Device version="3">
+            <FpsOffsetMap fps="90" SfDurationPercentage="125"/>
+            <FpsOffsetMap fps="120" SfDurationPercentage="130"/>
+            <FpsOffsetMap fps="144" SfDurationPercentage="140"/>
+        </Device>
+        <Device version="4">
+            <FpsOffsetMap fps="60" SfDurationPercentage="90" AppDuration="15666666"/>
+            <FpsOffsetMap fps="90" SfDurationPercentage="110"/>
+            <FpsOffsetMap fps="120" SfDurationPercentage="118"/>
+            <FpsOffsetMap fps="144" SfDurationPercentage="135" AppDuration="9666666"/>
+        </Device>
+        <Device version="5">
+            <FpsOffsetMap fps="60" SfDurationPercentage="90" AppDuration="15666666"/>
+            <FpsOffsetMap fps="90" SfDurationPercentage="125" AppDuration="12666666"/>
+            <FpsOffsetMap fps="120" SfDurationPercentage="130" AppDuration="10666666"/>
+            <FpsOffsetMap fps="144" SfDurationPercentage="135" AppDuration="9666666"/>
+            <FpsOffsetMap fps="180" SfDurationPercentage="140" AppDuration="9666666"/>
+            <FpsOffsetMap fps="240" SfDurationPercentage="140" AppDuration="9666666"/>
+        </Device>
+    </DeviceSettingList>
+</AdvancedSfOffsetSetting>
