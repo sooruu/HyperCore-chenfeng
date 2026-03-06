@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# HyperCore v3.0 — Vendor Config Overrides (bind-mount)
+# HyperCore v4.0 — Vendor Config Overrides (bind-mount)
 MODDIR=${0%/*}
 
 bind_mount() {

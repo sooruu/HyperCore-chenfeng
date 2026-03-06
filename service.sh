@@ -1,67 +1,51 @@
 #!/system/bin/sh
-# HyperCore v3.0 — Intelligent Performance + Battery Balance
-# iOS-style: smooth UI, constant gaming FPS, battery efficient
+# HyperCore v4.0 — Intelligent Performance Engine
+# Dynamic game-aware profiles + iOS-style frame consistency
 # Device: Xiaomi 14 Civi (chenfeng) — SM8635 (cliffs)
 # CPU: 3x A520 (little, 2016MHz) + 4x A720 (mid, 2803MHz) + 1x X4 (prime, 3014MHz)
 
 MODDIR=${0%/*}
+LOG_TAG="HyperCore"
+log_msg() { log -t "$LOG_TAG" "$1"; }
 
-# Wait for boot to complete
+# Wait for boot
 while [ "$(getprop sys.boot_completed)" != "1" ]; do
     /system/bin/sleep 1
 done
-
-# Short settle time for system services
 /system/bin/sleep 5
 
-# ============================================================
-# 1. ENABLE DISABLED QUALCOMM FEATURES (via resetprop)
-# ============================================================
-# Stock ROM disables these on cliffs — we enable them for iOS-like smoothness
-# These are the biggest wins: Qualcomm's own ML-based optimization features
+log_msg "v4.0 starting — boot complete"
 
-# SilkyScrolls — ML-based scroll smoothness (IPC/freq boost during scrolls)
+# ============================================================
+# §1. ENABLE DISABLED QUALCOMM FEATURES
+# ============================================================
+# Stock ROM disables these on cliffs — biggest smoothness wins
 resetprop ro.vendor.perf.ss true
 resetprop ro.vendor.perf.ssv2 true
-
-# Scroll Performance Load Hint — complementary to SilkyScrolls
 resetprop ro.vendor.perf.splh scroll
-
-# AdaptLaunch — ML-based adaptive app launch boost (learns per-app patterns)
 resetprop ro.vendor.perf.lal true
-
-# Lightning Game Launch — adaptive game launch boost
 resetprop ro.vendor.perf.lgl true
-
-# TopApp Render Thread Boost — boost render thread of foreground app
 resetprop vendor.perf.topAppRenderThreadBoost.enable true
-
-# PreKill — proactive memory management (kill predicted-unused apps before OOM)
 resetprop ro.vendor.perf.enable.prekill true
-
-# PrefApps — preferred apps kept in memory longer
 resetprop ro.vendor.perf.enable.prefapps true
-
-# Increase background app limit (stock: 60 for 8GB on cliffs)
 resetprop ro.vendor.qti.sys.fw.bg_apps_limit 96
+log_msg "§1 Qualcomm features enabled"
 
 # ============================================================
-# 2. CPU GOVERNOR TUNING (schedutil/walt)
+# §2. CPU GOVERNOR TUNING (balanced default — gaming.sh overrides)
 # ============================================================
-# Balanced: fast ramp-up, moderate ramp-down (not instant like v2.1)
-# This saves battery during idle while still being responsive
 for cpu_path in /sys/devices/system/cpu/cpufreq/policy*; do
     if [ -d "$cpu_path/schedutil" ]; then
         echo 0 > "$cpu_path/schedutil/rate_limit_us" 2>/dev/null
         echo 0 > "$cpu_path/schedutil/up_rate_limit_us" 2>/dev/null
-        # Moderate ramp-down: 8ms (v2.1 was 4ms, stock was 20ms)
         echo 8000 > "$cpu_path/schedutil/down_rate_limit_us" 2>/dev/null
         echo 0 > "$cpu_path/schedutil/pl" 2>/dev/null
     fi
 done
+log_msg "§2 CPU governor tuned"
 
 # ============================================================
-# 3. I/O SCHEDULER TUNING
+# §3. I/O SCHEDULER
 # ============================================================
 for block in /sys/block/sda /sys/block/sdb /sys/block/dm-*; do
     if [ -d "$block/queue" ]; then
@@ -71,31 +55,20 @@ for block in /sys/block/sda /sys/block/sdb /sys/block/dm-*; do
         echo 64 > "$block/queue/nr_requests" 2>/dev/null
     fi
 done
+log_msg "§3 I/O tuned"
 
 # ============================================================
-# 4. UFS STORAGE TUNING (NEW in v3.0)
+# §4. UFS STORAGE — Disable auto-hibernate
 # ============================================================
-# Disable UFS clock gating for lower storage latency
-# This is a meaningful win for app launch and game asset loading
-UFS_PATH="/sys/devices/platform/soc"
-for ufs in "$UFS_PATH"/*/host*/scsi_host/host*; do
-    if [ -d "$ufs" ]; then
-        # Disable auto-hibernate (keeps UFS link active)
-        echo 0 > "$ufs/auto_hibern8" 2>/dev/null 
-    fi
-done
-# Direct UFS sysfs tuning
 for ufs_clk in /sys/class/scsi_host/host*/auto_hibern8; do
     echo 0 > "$ufs_clk" 2>/dev/null
 done
+log_msg "§4 UFS auto-hibernate disabled"
 
 # ============================================================
-# 5. MEMORY / VM TUNING (balanced for battery)
+# §5. MEMORY / VM
 # ============================================================
-# Higher swappiness than v2.1 (60→80) — use zRAM more to save battery
-# iOS aggressively compresses memory rather than keeping everything hot
 echo 80 > /proc/sys/vm/swappiness 2>/dev/null
-
 echo 15 > /proc/sys/vm/dirty_ratio 2>/dev/null
 echo 5 > /proc/sys/vm/dirty_background_ratio 2>/dev/null
 echo 1500 > /proc/sys/vm/dirty_expire_centisecs 2>/dev/null
@@ -103,188 +76,146 @@ echo 500 > /proc/sys/vm/dirty_writeback_centisecs 2>/dev/null
 echo 100 > /proc/sys/vm/vfs_cache_pressure 2>/dev/null
 echo 0 > /proc/sys/vm/compaction_proactiveness 2>/dev/null
 echo 0 > /proc/sys/vm/watermark_boost_factor 2>/dev/null
-
-# Page cluster: read 8 pages at once from swap (better zRAM throughput)
 echo 3 > /proc/sys/vm/page-cluster 2>/dev/null
+log_msg "§5 VM tuned"
 
 # ============================================================
-# 6. KERNEL SCHEDULER TUNING
+# §6. KERNEL SCHEDULER (balanced default)
 # ============================================================
 echo 250000 > /proc/sys/kernel/sched_migration_cost_ns 2>/dev/null
 echo 0 > /proc/sys/kernel/sched_tunable_scaling 2>/dev/null
 echo 4000000 > /proc/sys/kernel/sched_latency_ns 2>/dev/null
 echo 500000 > /proc/sys/kernel/sched_min_granularity_ns 2>/dev/null
 echo 750000 > /proc/sys/kernel/sched_wakeup_granularity_ns 2>/dev/null
-
-# WALT scheduler tuning (SM8635 specific)
 echo 5 > /proc/sys/walt/sched_min_task_util_for_colocation 2>/dev/null
 echo 5 > /proc/sys/walt/sched_min_task_util_for_boost 2>/dev/null
+log_msg "§6 Scheduler tuned"
 
 # ============================================================
-# 7. GPU TUNING (balanced — not always-on max like v2.1)
+# §7. GPU (balanced default — gaming.sh overrides)
 # ============================================================
 GPU_PATH="/sys/class/kgsl/kgsl-3d0"
 if [ -d "$GPU_PATH" ]; then
-    # Keep GPU clocks ready but don't force always-on
     echo 1 > "$GPU_PATH/force_clk_on" 2>/dev/null
     echo 0 > "$GPU_PATH/bus_split" 2>/dev/null
     echo 1 > "$GPU_PATH/force_bus_on" 2>/dev/null
-    # DON'T force rail on (saves power when GPU idle) — v2.1 had this on
     echo 0 > "$GPU_PATH/force_rail_on" 2>/dev/null
     echo 0 > "$GPU_PATH/force_no_nap" 2>/dev/null
-    # Moderate idle timer (v2.1: 64ms, stock: 80ms, v3.0: 58ms)
     echo 58 > "$GPU_PATH/idle_timer" 2>/dev/null
     echo 0 > "$GPU_PATH/throttling" 2>/dev/null
-    # Adreno boost: medium (v2.1: 3/high, v3.0: 2/medium — saves battery)
     echo 2 > "$GPU_PATH/devfreq/adrenoboost" 2>/dev/null
 fi
+log_msg "§7 GPU balanced"
 
 # ============================================================
-# 8. DRAM FREQUENCY FLOOR (NEW in v3.0)
+# §8. DRAM / L3 FREQUENCY FLOOR (balanced default)
 # ============================================================
-# Set minimum DDR frequency to prevent deep sleep latency spikes
-# This is what makes iOS feel "instant" — memory bus never fully sleeps
 for bw_path in /sys/class/devfreq/*cpu-llcc-ddr-bw*; do
-    if [ -f "$bw_path/min_freq" ]; then
-        echo 547000 > "$bw_path/min_freq" 2>/dev/null
-    fi
+    [ -f "$bw_path/min_freq" ] && echo 547000 > "$bw_path/min_freq" 2>/dev/null
 done
-
-# L3 cache frequency floor
 for l3_path in /sys/class/devfreq/*cpu-l3-lat*; do
-    if [ -f "$l3_path/min_freq" ]; then
-        echo 614400 > "$l3_path/min_freq" 2>/dev/null
-    fi
+    [ -f "$l3_path/min_freq" ] && echo 614400 > "$l3_path/min_freq" 2>/dev/null
 done
+log_msg "§8 DRAM/L3 floor set"
 
 # ============================================================
-# 9. NETWORK TUNING
+# §9. NETWORK
 # ============================================================
 if grep -q bbr /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
     echo bbr > /proc/sys/net/ipv4/tcp_congestion_control 2>/dev/null
 fi
 echo 0 > /proc/sys/net/ipv4/tcp_slow_start_after_idle 2>/dev/null
 echo 3 > /proc/sys/net/ipv4/tcp_fastopen 2>/dev/null
+log_msg "§9 Network tuned"
 
 # ============================================================
-# 10. DISABLE KERNEL DEBUG OVERHEAD
+# §10. DISABLE KERNEL DEBUG OVERHEAD
 # ============================================================
 echo "0 0 0 0" > /proc/sys/kernel/printk 2>/dev/null
 echo 0 > /proc/sys/kernel/panic_on_oops 2>/dev/null
 echo 0 > /proc/sys/kernel/panic 2>/dev/null
-
-# Disable kernel tracing
 echo 0 > /sys/kernel/tracing/tracing_on 2>/dev/null
 echo 0 > /sys/kernel/debug/tracing/tracing_on 2>/dev/null
+log_msg "§10 Debug overhead disabled"
 
 # ============================================================
-# 11. ZRAM TUNING
+# §11. ZRAM — LZ4 if available
 # ============================================================
 for zram in /sys/block/zram*; do
     if [ -f "$zram/comp_algorithm" ]; then
-        if grep -q lz4 "$zram/comp_algorithm" 2>/dev/null; then
+        grep -q lz4 "$zram/comp_algorithm" 2>/dev/null && \
             echo lz4 > "$zram/comp_algorithm" 2>/dev/null
-        fi
     fi
 done
-
-
-# ============================================================
-# 12. STUNE / CPUSET (balanced — background gets efficiency cores)
-# ============================================================
-if [ -f /dev/stune/top-app/schedtune.boost ]; then
-    echo 5 > /dev/stune/top-app/schedtune.boost 2>/dev/null
-    echo 1 > /dev/stune/top-app/schedtune.prefer_idle 2>/dev/null
-fi
-
-if [ -f /dev/cpuset/top-app/cpus ]; then
-    echo 0-7 > /dev/cpuset/top-app/cpus 2>/dev/null
-fi
-if [ -f /dev/cpuset/background/cpus ]; then
-    echo 0-2 > /dev/cpuset/background/cpus 2>/dev/null
-fi
-if [ -f /dev/cpuset/system-background/cpus ]; then
-    echo 0-2 > /dev/cpuset/system-background/cpus 2>/dev/null
-fi
-# Restrict background to little cores only (saves battery)
-if [ -f /dev/cpuset/restricted/cpus ]; then
-    echo 0-2 > /dev/cpuset/restricted/cpus 2>/dev/null
-fi
+log_msg "§11 zRAM tuned"
 
 # ============================================================
-# 13. UI RENDERING PROPS (same as v2.1 — these are always good)
+# §12. CPUSET / STUNE
 # ============================================================
-resetprop persist.sys.ui.hw 1
+[ -f /dev/stune/top-app/schedtune.boost ] && echo 5 > /dev/stune/top-app/schedtune.boost 2>/dev/null
+[ -f /dev/stune/top-app/schedtune.prefer_idle ] && echo 1 > /dev/stune/top-app/schedtune.prefer_idle 2>/dev/null
+[ -f /dev/cpuset/top-app/cpus ] && echo 0-7 > /dev/cpuset/top-app/cpus 2>/dev/null
+[ -f /dev/cpuset/background/cpus ] && echo 0-2 > /dev/cpuset/background/cpus 2>/dev/null
+[ -f /dev/cpuset/system-background/cpus ] && echo 0-2 > /dev/cpuset/system-background/cpus 2>/dev/null
+[ -f /dev/cpuset/restricted/cpus ] && echo 0-2 > /dev/cpuset/restricted/cpus 2>/dev/null
+log_msg "§12 cpuset/stune configured"
+
+# ============================================================
+# §13. iOS-STYLE FRAME CONSISTENCY (NEW in v4.0)
+# ============================================================
+# These props make SurfaceFlinger behave more like iOS Core Animation:
+# - Never drop refresh rate after touch ends
+# - No backpressure stalls (SF doesn't wait for slow apps)
+# - Latch unsignaled buffers (display frame even if fence not signaled)
+resetprop debug.sf.latch_unsignaled 1
+resetprop debug.sf.auto_latch_unsignaled 1
+resetprop debug.sf.set_idle_timer_ms 0
+resetprop ro.surface_flinger.set_touch_timer_ms 0
+resetprop ro.surface_flinger.set_display_power_timer_ms 0
+resetprop debug.sf.enable_gl_backpressure 0
+
+# UI rendering pipeline
 resetprop debug.hwui.renderer skiagl
 resetprop debug.renderengine.backend skiaglthreaded
 resetprop debug.hwui.render_thread true
-resetprop debug.egl.force_msaa true
-# debug.sf.disable_backpressure removed in v3.0 — caused SystemUI ANR
+resetprop persist.sys.ui.hw 1
+log_msg "§13 Frame consistency props set"
 
 # ============================================================
-# 14. SURFACEFLINGER + HWC + AUDIOSERVER PRIORITY BOOST
+# §14. PROCESS PRIORITY BOOST (SF, HWC, Audio, Camera)
 # ============================================================
-resetprop debug.sf.latch_unsignaled 1
-resetprop debug.sf.auto_latch_unsignaled 1
-
-# SurfaceFlinger — SCHED_FIFO 90 (real-time but leaves headroom for SystemUI)
-# v2.1 used 99 which could starve SystemUI → ANR
 SF_PID=$(pidof surfaceflinger 2>/dev/null)
-if [ -n "$SF_PID" ]; then
-    chrt -f -p 90 "$SF_PID" 2>/dev/null
-fi
+[ -n "$SF_PID" ] && chrt -f -p 90 "$SF_PID" 2>/dev/null
 
-# HWC (Hardware Composer) — SCHED_FIFO 89
 HWC_PID=$(pidof android.hardware.composer.default 2>/dev/null)
-if [ -z "$HWC_PID" ]; then
-    HWC_PID=$(pidof vendor.qti.hardware.display.composer-service 2>/dev/null)
-fi
-if [ -n "$HWC_PID" ]; then
-    chrt -f -p 89 "$HWC_PID" 2>/dev/null
-fi
+[ -z "$HWC_PID" ] && HWC_PID=$(pidof vendor.qti.hardware.display.composer-service 2>/dev/null)
+[ -n "$HWC_PID" ] && chrt -f -p 89 "$HWC_PID" 2>/dev/null
 
-# AudioServer — SCHED_FIFO 88 (prevents audio glitches)
 AUDIO_PID=$(pidof audioserver 2>/dev/null)
-if [ -n "$AUDIO_PID" ]; then
-    chrt -f -p 88 "$AUDIO_PID" 2>/dev/null
-fi
+[ -n "$AUDIO_PID" ] && chrt -f -p 88 "$AUDIO_PID" 2>/dev/null
 
-# CameraServer — SCHED_FIFO 87 (smoother viewfinder)
 CAM_PID=$(pidof cameraserver 2>/dev/null)
-if [ -n "$CAM_PID" ]; then
-    chrt -f -p 87 "$CAM_PID" 2>/dev/null
-fi
+[ -n "$CAM_PID" ] && chrt -f -p 87 "$CAM_PID" 2>/dev/null
+log_msg "§14 Process priorities boosted"
 
 # ============================================================
-# 15. IRQ AFFINITY (NEW in v3.0)
+# §15. IRQ AFFINITY
 # ============================================================
-# Pin performance-critical IRQs to big/prime cores
-# Touch controller, display, GPU interrupts → performance cores
 for irq_dir in /proc/irq/*/; do
-    irq_name=""
-    if [ -f "${irq_dir}actions" ]; then
-        irq_name=$(cat "${irq_dir}actions" 2>/dev/null)
-    fi
+    irq_name=$(cat "${irq_dir}actions" 2>/dev/null)
     case "$irq_name" in
         *kgsl*|*adreno*|*gpu*)
-            # GPU IRQs → prime core (cpu7)
-            echo 80 > "${irq_dir}smp_affinity" 2>/dev/null
-            ;;
+            echo 80 > "${irq_dir}smp_affinity" 2>/dev/null ;;
         *sde*|*mdss*|*display*)
-            # Display IRQs → big cores (cpu3-6)
-            echo 78 > "${irq_dir}smp_affinity" 2>/dev/null
-            ;;
+            echo 78 > "${irq_dir}smp_affinity" 2>/dev/null ;;
         *touch*|*goodix*|*fts*|*synaptics*|*atmel*|*nvt*|*xiaomi*|*focaltech*|*gtp*)
-            # Touch IRQs → big cores for lowest input latency
-            # Prime core (cpu7) = 0x80, Big cores (cpu3-6) = 0x78
-            # Use big+prime (0xF8) for touch — maximum responsiveness
-            echo f8 > "${irq_dir}smp_affinity" 2>/dev/null
-            ;;
+            echo f8 > "${irq_dir}smp_affinity" 2>/dev/null ;;
     esac
 done
+log_msg "§15 IRQ affinity set"
 
 # ============================================================
-# 16. DALVIK/ART VM TUNING
+# §16. DALVIK/ART VM
 # ============================================================
 resetprop dalvik.vm.heapsize 512m
 resetprop dalvik.vm.heapgrowthlimit 256m
@@ -294,85 +225,56 @@ resetprop dalvik.vm.heaptargetutilization 0.75
 resetprop dalvik.vm.dex2oat-threads 8
 resetprop pm.dexopt.install speed-profile
 resetprop pm.dexopt.bg-dexopt speed-profile
+log_msg "§16 Dalvik/ART tuned"
 
 # ============================================================
-# 17. TOUCH RESPONSIVENESS (CRITICAL FOR GAMING AIM ASSIST)
+# §17. TOUCH RESPONSIVENESS + GOODIX 480Hz HTSR
 # ============================================================
 resetprop persist.sys.scrollingcache 3
 resetprop touch.pressure.scale 0.001
-resetprop persist.sys.touch.pressure true
 
-# Reduce SF touch timer: 200ms → 0ms (don't drop refresh rate after touch)
-# Stock 200ms means display can drop to idle fps between rapid taps
-resetprop ro.surface_flinger.set_touch_timer_ms 0
-
-for touch_boost in /sys/module/msm_performance/parameters/touchboost; do
-    echo 1 > "$touch_boost" 2>/dev/null
-done
-
-# === GOODIX HIGH TOUCH SAMPLING RATE (HTSR) ===
-# Xiaomi 14 Civi uses Goodix touch controller (goodix_ts.0)
-# Writing 1 enables high touch polling rate (~480Hz vs default ~240Hz)
-# This is the single biggest factor for aim assist smoothness
+# Goodix high touch sampling rate
 HTSR_FILE="/sys/devices/platform/goodix_ts.0/switch_report_rate"
-if [ -f "$HTSR_FILE" ]; then
-    echo 1 > "$HTSR_FILE" 2>/dev/null
-fi
+[ -f "$HTSR_FILE" ] && echo 1 > "$HTSR_FILE" 2>/dev/null
 
-# Goodix touch controller: enable game mode for lower touch latency
-# Game mode reduces touch filtering/smoothing for raw input
+# Goodix game mode + disable idle
 for gts in /sys/devices/platform/goodix_ts.0; do
-    if [ -f "$gts/game_mode" ]; then
-        echo 1 > "$gts/game_mode" 2>/dev/null
-    fi
+    [ -f "$gts/game_mode" ] && echo 1 > "$gts/game_mode" 2>/dev/null
+    [ -f "$gts/idle_enable" ] && echo 0 > "$gts/idle_enable" 2>/dev/null
 done
+log_msg "§17 Touch 480Hz HTSR enabled"
 
 # ============================================================
-# 18. CPU IDLE STATE CONTROL (NEW in v3.0)
+# §18. CPU IDLE — Disable deep C-states on big/prime
 # ============================================================
-# Disable deepest C-states on big/prime cores to reduce wake latency
-# Little cores (cpu0-2) keep deep sleep for battery
-# Big cores (cpu3-6) and prime (cpu7) stay in shallow sleep
 for cpu in 3 4 5 6 7; do
     for state in /sys/devices/system/cpu/cpu${cpu}/cpuidle/state*/disable; do
         state_dir=$(dirname "$state")
         state_name=$(cat "${state_dir}/name" 2>/dev/null)
         case "$state_name" in
             *rail*|*pc*|*C4*|*C3*)
-                # Disable deep C-states on performance cores
-                echo 1 > "$state" 2>/dev/null
-                ;;
+                echo 1 > "$state" 2>/dev/null ;;
         esac
     done
 done
+log_msg "§18 Deep C-states disabled on big/prime"
 
 # ============================================================
-# 19. BGMI / PUBG TOUCH INPUT OPTIMIZATION
+# §19. DISABLE TELEMETRY (clean approach)
 # ============================================================
-# BGMI aim assist relies on consistent, low-jitter touch input.
-# iPhone feels better because its touch pipeline has lower, more
-# consistent latency. These tweaks close the gap on Android.
-
-# Disable touch idle (prevents touch controller from entering low-power mode)
-if [ -f /sys/devices/platform/goodix_ts.0/idle_enable ]; then
-    echo 0 > /sys/devices/platform/goodix_ts.0/idle_enable 2>/dev/null
-fi
-
-# Xiaomi TouchFeature: set game mode via setTouchMode
-# Mode 0 = Game Mode, Mode 17 = Touch Tolerance (lower = more sensitive)
-# This uses Xiaomi's proprietary touch HAL
-# The service.sh can't call the HAL directly, but we can set the sysfs nodes
-
-# Disable pointer acceleration (Android applies acceleration by default)
-# This makes raw touch movement 1:1 — critical for aim assist consistency
-resetprop persist.sys.ui.hw 1
+pm disable com.miui.analytics 2>/dev/null
+pm disable com.miui.daemon 2>/dev/null
+log_msg "§19 Telemetry disabled"
 
 # ============================================================
-# 20. DISABLE XIAOMI TELEMETRY
+# §20. START GAME MONITOR DAEMON (NEW in v4.0)
 # ============================================================
-for proc in com.miui.analytics com.miui.daemon; do
-    PID=$(pidof "$proc" 2>/dev/null)
-    if [ -n "$PID" ]; then
-        kill -9 "$PID" 2>/dev/null
-    fi
-done
+# Kill any existing instance
+EXISTING=$(pidof -s game_monitor.sh 2>/dev/null)
+[ -n "$EXISTING" ] && kill "$EXISTING" 2>/dev/null
+
+# Start daemon in background
+nohup sh "$MODDIR/game_monitor.sh" > /dev/null 2>&1 &
+log_msg "§20 Game monitor daemon started (PID: $!)"
+
+log_msg "=== HyperCore v4.0 boot sequence complete ==="
