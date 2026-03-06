@@ -1,6 +1,6 @@
 id=hypercore_chenfeng
 name=HyperCore - Intelligent Performance
-version=v3.0
-versionCode=4
+version=v3.1
+versionCode=5
 author=HyperCore
-description=iOS-style intelligent performance: smooth UI + battery saving + max gaming FPS. Enables disabled Qualcomm features (SilkyScrolls, sPLH, AdaptLaunch, TopAppRenderThreadBoost), UFS/DRAM/L3 tuning, IRQ affinity, process priority boost, lower perf hint thresholds. Xiaomi 14 Civi (chenfeng) SM8635.
+description=iOS-style intelligent performance + BGMI touch optimization. Enables disabled Qualcomm features (SilkyScrolls, sPLH, AdaptLaunch, TopAppRenderThreadBoost), Goodix HTSR 480Hz, touch game mode, UFS/DRAM/L3 tuning, IRQ affinity, process priority boost. Xiaomi 14 Civi (chenfeng) SM8635.
